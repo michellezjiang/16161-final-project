@@ -195,3 +195,69 @@ body {
     font-size: 28px;
   }
 }
+
+/* Walking mode: centre reticle and the "click to explore" card. */
+.reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgba(255, 250, 240, 0.9);
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.reticle.is-visible {
+  opacity: 1;
+}
+
+.walk-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  padding: 16px 26px 14px;
+  border-radius: 6px;
+  background: rgba(23, 18, 14, 0.78);
+  border: 1px solid rgba(184, 138, 68, 0.45);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.walk-prompt.is-visible {
+  opacity: 1;
+}
+
+.walk-prompt__title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-style: italic;
+}
+
+.walk-prompt__keys {
+  margin: 4px 0 0;
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.walk-prompt kbd {
+  display: inline-block;
+  min-width: 22px;
+  margin: 0 2px;
+  padding: 1px 6px;
+  border: 1px solid rgba(241, 230, 207, 0.5);
+  border-radius: 3px;
+  font: 13px/1.5 ui-monospace, Menlo, monospace;
+}
+
+/* The tooltip sits just below the reticle instead of following a cursor. */
+.is-walking .tooltip {
+  margin-left: -16px;
+}

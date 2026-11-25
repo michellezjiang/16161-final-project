@@ -52,7 +52,8 @@ export function createCabinetMaterials() {
   return {
     wood: new THREE.MeshStandardMaterial({ map: walnut, roughness: 0.55, metalness: 0 }),
     woodDark: new THREE.MeshStandardMaterial({ map: walnut, color: 0x7a6a60, roughness: 0.6 }),
-    brass: new THREE.MeshStandardMaterial({ color: 0xc09048, metalness: 1, roughness: 0.32 }),
+    // Futurist accent: brushed titanium hardware and trim.
+    metal: new THREE.MeshStandardMaterial({ color: 0x7d858e, metalness: 1, roughness: 0.3 }),
     felt: new THREE.MeshStandardMaterial({ color: 0x1e3a2a, roughness: 1 }),
     interior: new THREE.MeshStandardMaterial({ color: 0x5e412b, roughness: 0.85 }),
   };
@@ -90,18 +91,25 @@ export function board(w, h, d, material, { x = 0, y = 0, z = 0 } = {}) {
   return mesh;
 }
 
-/** A small card with engraved-looking text, for drawer label holders. */
+/** Engraved text on a brushed-metal plate, for the drawer labels. */
 export function labelTexture(text) {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 160;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#e9dcc0';
+  ctx.fillStyle = '#b9c0c7';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#8a6b45';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(14, 14, canvas.width - 28, canvas.height - 28);
-  ctx.fillStyle = '#24140a';
+  // Horizontal brushing.
+  for (let i = 0; i < 400; i++) {
+    const shade = 150 + Math.floor(Math.random() * 80);
+    ctx.fillStyle = `rgba(${shade}, ${shade + 4}, ${shade + 8}, 0.25)`;
+    ctx.fillRect(0, Math.random() * canvas.height, canvas.width, 1);
+  }
+  // Engraved border and lettering.
+  ctx.strokeStyle = '#3c4248';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+  ctx.fillStyle = '#2a2f34';
   ctx.font = 'italic 700 84px "Cormorant Garamond", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

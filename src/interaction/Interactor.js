@@ -15,19 +15,25 @@ const CLICK_MAX_MOVE = 6; // px; beyond this a press is treated as a camera drag
  * interactable ancestor. Opaque scenery without one blocks the ray.
  *
  * mode 'pointer' aims with the mouse (orbit view). Mode 'center' aims from the
- * middle of the screen, for a future first-person / pointer-lock walking view.
+ * middle of the screen, for the first-person / pointer-lock walking view.
+ *
+ * root         Object3D or array of them to pick against (include walls so they block)
+ * maxDistance  how far away things can be reached
+ * isActive     extra gate, e.g. "the mouse is captured" in first-person mode
  */
 export class Interactor {
-  constructor({ camera, domElement, root, mode = 'pointer' }) {
+  constructor({ camera, domElement, root, mode = 'pointer', maxDistance = Infinity, isActive = () => true }) {
     this.camera = camera;
     this.domElement = domElement;
-    this.root = root;
+    this.roots = [].concat(root);
     this.mode = mode;
+    this.isActive = isActive;
     this.enabled = true;
     this.hovered = null;
     this.onHoverChange = null; // (interactable | null, event-ish {x, y}) => void
 
     this.raycaster = new THREE.Raycaster();
+    this.raycaster.far = maxDistance;
     this.pointer = new THREE.Vector2();
     this.pointerPx = { x: 0, y: 0 };
     this.pointerInside = false;
@@ -47,9 +53,13 @@ export class Interactor {
   /** Re-picks every frame, since drawers and objects move under a still pointer. */
   update() {
     if (!this.enabled) return;
-    if (this.mode === 'pointer' && !this.pointerInside) {
+    if (!this.isActive() || (this.mode === 'pointer' && !this.pointerInside)) {
       this.#setHovered(null);
       return;
+    }
+    if (this.mode === 'center') {
+      const rect = this.domElement.getBoundingClientRect();
+      this.pointerPx = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     }
     this.#setHovered(this.#pick());
   }
@@ -67,11 +77,11 @@ export class Interactor {
   }
 
   #onUp(e) {
-    if (!this.downAt || !this.enabled) return;
+    if (!this.downAt || !this.enabled || !this.isActive()) return;
     const moved = Math.hypot(e.clientX - this.downAt.x, e.clientY - this.downAt.y);
     this.downAt = null;
     if (moved > CLICK_MAX_MOVE) return;
-    this.#onMove(e);
+    if (this.mode === 'pointer') this.#onMove(e);
     this.#setHovered(this.#pick());
     this.selectHovered();
   }
@@ -79,7 +89,7 @@ export class Interactor {
   #pick() {
     const ndc = this.mode === 'center' ? new THREE.Vector2(0, 0) : this.pointer;
     this.raycaster.setFromCamera(ndc, this.camera);
-    const hits = this.raycaster.intersectObject(this.root, true);
+    const hits = this.raycaster.intersectObjects(this.roots, true);
     const hit = hits.find((h) => h.object.visible);
     if (!hit) return null;
     for (let o = hit.object; o; o = o.parent) {

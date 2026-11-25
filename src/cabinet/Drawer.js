@@ -95,30 +95,37 @@ export class Drawer {
     this.contents.position.copy(felt.position);
     this.group.add(this.contents);
 
-    // Brass knob.
-    const knob = new THREE.Group();
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.02, 16), m.brass);
-    stem.rotation.x = Math.PI / 2;
-    stem.position.z = 0.018;
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.016, 24, 16), m.brass);
-    ball.scale.z = 0.8;
-    ball.position.z = 0.034;
-    const rose = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.004, 24), m.brass);
-    rose.rotation.x = Math.PI / 2;
-    rose.position.z = 0.009;
-    knob.add(stem, ball, rose);
-    knob.position.y = -h * 0.14;
-    knob.traverse((o) => (o.castShadow = true));
-    this.group.add(knob);
+    // Slim bar pull on two posts.
+    const pull = new THREE.Group();
+    const bar = new THREE.Mesh(new THREE.CapsuleGeometry(0.0055, 0.075, 6, 16), m.metal);
+    bar.rotation.z = Math.PI / 2;
+    bar.position.z = 0.026;
+    pull.add(bar);
+    for (const x of [-0.032, 0.032]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0045, 0.022, 12), m.metal);
+      post.rotation.x = Math.PI / 2;
+      post.position.set(x, 0, 0.015);
+      pull.add(post);
+    }
+    pull.position.y = -h * 0.16;
+    pull.traverse((o) => (o.castShadow = true));
+    this.group.add(pull);
 
-    // Brass label holder with a paper card.
+    // Engraved metal label plate.
     const holderW = Math.min(0.15, w * 0.4);
     const holderH = holderW * 0.33;
-    const holder = new THREE.Mesh(new THREE.BoxGeometry(holderW, holderH, 0.004), m.brass);
+    const holder = new THREE.Mesh(new THREE.BoxGeometry(holderW, holderH, 0.004), m.metal);
     holder.position.set(0, h * 0.2, 0.01);
+    const label = labelTexture(this.label);
     const card = new THREE.Mesh(
-      new THREE.PlaneGeometry(holderW - 0.012, holderH - 0.01),
-      new THREE.MeshStandardMaterial({ map: labelTexture(this.label), roughness: 0.9 })
+      new THREE.PlaneGeometry(holderW - 0.008, holderH - 0.008),
+      new THREE.MeshStandardMaterial({
+        map: label,
+        bumpMap: label, // dark lettering reads as cut into the metal
+        bumpScale: 1.5,
+        roughness: 0.35,
+        metalness: 1,
+      })
     );
     card.position.z = 0.0022;
     holder.add(card);

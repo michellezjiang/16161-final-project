@@ -28,7 +28,7 @@ export class App {
     this.renderer = renderer;
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(40, 1, 0.02, 100);
+    this.camera = new THREE.PerspectiveCamera(40, 1, 0.05, 2500);
     // The camera is in the scene so things can be parented to it (inspection anchor, lights).
     this.scene.add(this.camera);
 

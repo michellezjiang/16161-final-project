@@ -47,6 +47,17 @@ export class Cabinet {
     for (const d of this.drawers) d.update(dt);
   }
 
+  /** World-space floor footprint, including the space the drawers slide into. For collision. */
+  footprint() {
+    const saved = this.drawers.map((d) => d.group.position.z);
+    for (const d of this.drawers) d.group.position.z = d.closedZ + d.travel;
+    this.group.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(this.group);
+    this.drawers.forEach((d, i) => (d.group.position.z = saved[i]));
+    this.group.updateMatrixWorld(true);
+    return { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z };
+  }
+
   get bodyBottom() {
     return this.options.footHeight + this.options.plinthHeight;
   }
@@ -75,10 +86,13 @@ export class Cabinet {
     const topT = 0.03;
     this.group.add(board(W + 0.05, topT, D + 0.04, m.wood, { y: y1 + topT / 2, z: 0.01 }));
     this.group.add(board(W + 0.02, 0.014, D + 0.015, m.wood, { y: y1 + topT + 0.007, z: 0.005 }));
+    // Thin metal band between top and crown.
+    this.group.add(board(W + 0.024, 0.003, D + 0.019, m.metal, { y: y1 + topT + 0.0015, z: 0.005 }));
 
-    // Apron with a moulding lip.
+    // Apron with a slim metal band set just below its top edge. The band is only
+    // 1.5 mm proud of the wood and shares no faces with it, so nothing z-fights.
     this.group.add(board(W + 0.02, plinthHeight, D + 0.02, m.wood, { y: footHeight + plinthHeight / 2 }));
-    this.group.add(board(W + 0.035, 0.016, D + 0.035, m.wood, { y: footHeight + plinthHeight - 0.008 }));
+    this.group.add(board(W + 0.023, 0.01, D + 0.023, m.metal, { y: y0 - 0.012 }));
 
     // Turned legs joined by a low shelf.
     const legProfile = [
@@ -91,6 +105,10 @@ export class Cabinet {
         const leg = new THREE.Mesh(legGeometry, m.wood);
         leg.position.set(sx * (W / 2 - 0.03), 0, sz * (D / 2 - 0.03));
         leg.castShadow = true;
+        // Metal ferrule where the leg meets the floor.
+        const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.0235, 0.021, 0.034, 24), m.metal);
+        ferrule.position.y = 0.017;
+        leg.add(ferrule);
         this.group.add(leg);
       }
     }
